@@ -1,0 +1,12 @@
+[project]
+name = "mapf-bench-primal2"
+version = "0.1.0"
+description = "PRIMAL2 adapter for mapf_bench"
+requires-python = ">=3.10"
+dependencies = [
+  "mapf-bench",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
