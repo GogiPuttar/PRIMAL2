@@ -34,29 +34,29 @@ class PRIMAL2Pathfinder:
         self.checkpoint_path: str | None = None
         self.mode = "compat_greedy"
 
-    def configure(self, config: Mapping[str, Any]) -> None:
+    def configure(self, config):
         self.params = dict(config)
-        self.checkpoint_path = self.params.get("checkpoint_path")
         self.mode = self.params.get("mode", "compat_greedy")
 
-        if self.mode not in {"compat_greedy", "legacy_tf"}:
-            raise ValueError(f"Unsupported PRIMAL2 adapter mode: {self.mode}")
-
         if self.mode == "legacy_tf":
-            raise NotImplementedError(
-                "legacy_tf mode is intentionally not wired yet. "
-                "The adapter contract is ready, but PRIMAL2 TensorFlow inference "
-                "needs a separate integration pass."
-            )
+            from mapf_bench_primal2.legacy_tf_backend import LegacyTFBackend
+            self.backend = LegacyTFBackend(self.params)
+        else:
+            self.backend = None
 
     def reset(self, problem: MAPFProblem, *, seed: int | None = None) -> None:
         self.problem = problem
         self.goals = {a.agent_id: a.goal for a in problem.agents}
         self.agent_ids = [a.agent_id for a in problem.agents]
+        if self.backend is not None:
+            self.backend.reset(problem, seed=seed)
 
     def step(self, request: StepRequest) -> StepResult:
         if self.problem is None:
             self.reset(request.problem, seed=request.seed)
+
+        if self.backend is not None:
+            return self.backend.step(request)
 
         actions: dict[str, Action] = {}
 
