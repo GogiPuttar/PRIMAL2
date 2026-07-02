@@ -7,6 +7,9 @@ dependencies = [
   "mapf-bench",
 ]
 
+[tool.setuptools]
+packages = ["mapf_bench_primal2"]
+
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
