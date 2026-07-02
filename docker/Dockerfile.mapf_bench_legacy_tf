@@ -1,0 +1,43 @@
+FROM python:3.6-buster
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+RUN sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list \
+    && sed -i 's|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g' /etc/apt/sources.list \
+    && sed -i '/buster-updates/d' /etc/apt/sources.list \
+    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    wget \
+    libboost-all-dev \
+    freeglut3-dev \
+    libglu1-mesa \
+    libglu1-mesa-dev \
+    python-opengl \
+    xvfb \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace/PRIMAL2
+
+COPY docker/requirements-mapf-bench-legacy-tf.txt /tmp/requirements.txt
+
+RUN python -m pip install --upgrade "pip<21" "setuptools<45" wheel
+RUN python -m pip install -r /tmp/requirements.txt
+
+COPY . .
+
+RUN if [ -f od_mstar3/setup.py ]; then \
+      cd od_mstar3 && python setup.py build_ext --inplace; \
+    fi
+
+CMD ["python", "-c", "import tensorflow as tf; import ray; print('tf', tf.__version__); print('ray', ray.__version__)"]

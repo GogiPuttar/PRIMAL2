@@ -9,10 +9,20 @@ from od_mstar3 import od_mstar
 from od_mstar3 import cpp_mstar
 from GroupLock import Lock
 from matplotlib.colors import *
-from gym.envs.classic_control import rendering
 import imageio
 from gym import spaces
 
+rendering = None
+
+
+def _get_rendering():
+    global rendering
+
+    if rendering is None:
+        from gym.envs.classic_control import rendering as gym_rendering
+        rendering = gym_rendering
+
+    return rendering
 
 def make_gif(images, fname):
     gif = imageio.mimwrite(fname, images, subrectangles=True)
@@ -947,6 +957,8 @@ class MAPFEnv(gym.Env):
             self.viewer.add_onetime(entry)
 
     def _render(self, mode='human', close=False, screen_width=800, screen_height=800):
+
+        rendering = _get_rendering()
 
         def painter(state_map, agents_dict, goals_dict):
             def initColors(num_agents):
